@@ -1,1 +1,11 @@
 HomeLoadTv.com Client written in Perl
+
+Requires:
+ - aria2c
+ - screen
+ - Perl Modules:
+   - Data::Dumper
+   - Digest::MD5
+   - FindBin
+   - HTTP::Cookies
+   - LWP::UserAgent

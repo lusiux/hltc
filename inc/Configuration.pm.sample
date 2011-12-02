@@ -1,0 +1,28 @@
+package Configuration;
+
+## SECTION common
+# Directory for aria2c logfiles. Cleanup regularly
+our $logDir = 'logs';
+# Directory for tempory download files
+our $downloadDir = 'temp';
+# Directory for successfully completed downloads
+our $downloadCompleteDir = 'downloads';
+# Download command. Currently only ariaSleepWrapper.sh is supported.
+our $dlCmd = 'aria2c';
+# Which screen name to use/attach to
+our $screenToAttachTo = 'hltc';
+
+## SECTION BEHAVIOR
+# When should the downloads start (HH:MM)
+our $startTime = '02:30';
+
+## SECTION HLTV
+# User id for otr account
+our $userId='';
+# Username for otr
+our $username = '';
+# Password for otr
+our $password = '';
+
+## DO NOT EDIT BELOW
+our ($startHour, $startMins) = split(":", $startTime);
