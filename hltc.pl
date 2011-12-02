@@ -23,14 +23,13 @@ use FindBin;
 use lib "$FindBin::Bin/inc";
 
 use Configuration;
-use Helper;
+use aria2;
 use hltv;
 use hltvLinkList;
 
 print "Connecting to homeloadtv account";
 my $hltv = new hltv($Configuration::userId, $Configuration::username, $Configuration::password);
-
-Helper::startupScreen($Configuration::screenToAttachTo);
+my $aria2 = new aria2();
 
 my $linkList = $hltv->getNewLinks();
 if ( $linkList->error() ) {
@@ -50,9 +49,7 @@ if ( $linkList->error() ) {
 
 		print "\n\tStarting download of ($counter/$count): $url";
 
-		my @cmd = ('screen','-S', $Configuration::screenToAttachTo, '-X', 'screen', '-t', 'aria', '10', 'bin/ariaSleepWrapper.sh', '10', $Configuration::dlCmd, '-V', '-m', 0, '--retry-wait', 30, '-d', $Configuration::downloadDir, '-s', 1, $url, '--on-download-complete', $FindBin::Bin. '/bin/complete.pl');
-		#print join ' ', @cmd;
-		system(@cmd);
+		$aria2->startDownload($url);
 
 		my $ret = $hltv->finishLink($id);
 		print "\n";

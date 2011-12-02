@@ -9,6 +9,8 @@ Requirements:
    - FindBin
    - HTTP::Cookies
    - LWP::UserAgent
+   - RPC::XML
+   - RPC::XML::Client;
 
 Installation:
  - Extract source files to a directory.

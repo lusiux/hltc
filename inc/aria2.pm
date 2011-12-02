@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # This file is part of hltc, a client for homeload.com written in Perl
 # 
 # hltc is free software: you can redistribute it and/or modify
@@ -15,7 +13,39 @@
 # You should have received a copy of the GNU General Public License
 # along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 
+package aria2;
 
-eval "${@:2}"
+use RPC::XML;
+use RPC::XML::Client;
 
-sleep $1
+use Configuration;
+use Helper;
+
+# Configuration
+my $rpcUrl = 'http://localhost/rpc/';
+
+sub new {
+	my ($class) = @_;
+
+	Helper::startupScreen($Configuration::screenToAttachTo);
+
+	my $rpc = RPC::XML::Client->new('http://localhost:6800/rpc');
+	my $self = {rpc=>$rpc};
+
+	return bless $self, $class;
+}
+
+sub startDownload {
+	my ($this, $url) = @_;
+
+	my $response = $this->{rpc}->simple_request('aria2.addUri', [ $url ]);
+
+	if ( $response ) {
+		return $response;
+	} else {
+		print STDERR $RPC::XML::ERROR . "\n";
+		return undef;
+	}
+}
+
+1;
