@@ -1,6 +1,6 @@
 HomeLoadTv.com Client written in Perl
 
-Requires:
+Requirements:
  - aria2c
  - screen
  - Perl Modules:
@@ -9,3 +9,17 @@ Requires:
    - FindBin
    - HTTP::Cookies
    - LWP::UserAgent
+
+Installation:
+ - Extract source files to a directory.
+ - Move the file inc/Configuration.pm.sample to inc/Configuration.pm
+ - Edit the file inc/Configuration.pm and enter your homeloadtv.com user id,
+   email address and password
+
+Using hltc:
+ - Go to the directory with the source files.
+ - just run hltc.pl (./hltc.pl)
+
+Limitations:
+ - Right after starting the downloader the urls are reported as completed.
+ - even more stuff...
