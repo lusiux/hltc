@@ -12,6 +12,10 @@ Requirements:
    - RPC::XML
    - RPC::XML::Client;
 
+Upgrading:
+ - Make sure that the screen, which was started by previous versions of hltc,
+   is not running anymore. (Try: screen -list)
+
 Installation:
  - Extract source files to a directory.
  - Move the file inc/Configuration.pm.sample to inc/Configuration.pm
