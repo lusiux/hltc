@@ -11,7 +11,7 @@
 # GNU General Public License for more details.
 # 
 # You should have received a copy of the GNU General Public License
-# along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+# along with hltc.  If not, see <http://www.gnu.org/licenses/>.
 
 package aria2;
 
@@ -46,6 +46,40 @@ sub startDownload {
 		print STDERR $RPC::XML::ERROR . "\n";
 		return undef;
 	}
+}
+
+sub pauseAllDownloads {
+	my ($this) = @_;
+
+	my $response = $this->{rpc}->simple_request('aria2.pauseAll');
+
+	if ( $response ) {
+		if ( $response eq 'OK' ) {
+			return 0;
+		} else {
+			return 1;
+		}
+	}
+
+	print STDERR $RPC::XML::ERROR . "\n";
+	return -1;
+}
+
+sub resumeAllDownloads {
+	my ($this) = @_;
+
+	my $response = $this->{rpc}->simple_request('aria2.unpauseAll');
+
+	if ( $response ) {
+		if ( $response eq 'OK' ) {
+			return 0;
+		} else {
+			return 1;
+		}
+	}
+
+	print STDERR $RPC::XML::ERROR . "\n";
+	return -1;
 }
 
 1;

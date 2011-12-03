@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # This file is part of hltc, a client for homeload.com written in Perl
 # 
@@ -20,43 +20,14 @@ use warnings;
 
 use Data::Dumper;
 use FindBin;
-use lib "$FindBin::Bin/inc";
+use lib "$FindBin::Bin/../inc";
 
 use Configuration;
 use aria2;
-use hltv;
-use hltvLinkList;
 
-print "Connecting to homeloadtv account";
-my $hltv = new hltv($Configuration::userId, $Configuration::username, $Configuration::password);
 my $aria2 = new aria2();
 
-my $linkList = $hltv->getNewLinks();
-if ( $linkList->error() ) {
-	warn $linkList->error();
-} else {
-	print $hltv->ackList($linkList);
-	my $linkListRef = $linkList->getLinks();
-
-	my $count = $linkList->getNumberOfLinks();
-	my $counter = 0;
-
-	print "\nFound $count link(s)\n";
-
-	foreach my $id ( keys %{$linkListRef} ) {
-		my $url = $linkListRef->{$id};
-		$counter++;
-
-		print "\n\tStarting download of ($counter/$count): $url";
-
-		$aria2->startDownload($url);
-
-		my $ret = $hltv->finishLink($id);
-		print "\n";
-	}
+my $retVal = $aria2->resumeAllDownloads();
+if ( $retVal != 0 ) {
+	print STDERR "An error occured\n";
 }
-
-print "\n";
-
-print "Resuming old downloads\n";
-$aria2->resumeAllDownloads();
