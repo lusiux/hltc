@@ -11,7 +11,7 @@
 # GNU General Public License for more details.
 # 
 # You should have received a copy of the GNU General Public License
-# along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+# along with hltc.  If not, see <http://www.gnu.org/licenses/>.
 
 package Helper;
 
@@ -19,14 +19,17 @@ use Configuration;
 
 sub startupScreen {
 	my $screenName = shift;
-	my @cmd = ('bin/isScreenRunning.sh', $screenName);
+
+	# Check if screen is running
+	my @cmd = ($Configuration::baseDir . '/bin/isScreenRunning.sh', $screenName);
 	system @cmd;
 	if ( $? == 0 ) {
 		return;
 	}
+
+	# Start screen with an instance of aria2 in daemon mode
 	@cmd = ('screen', '-dmS', $screenName, '-c', "$Configuration::baseDir/etc/screenrc", 'aria2c', '--retry-wait=30', '-m', '0', '--enable-rpc', '-l', "$Configuration::logDir/aria2c.log", '-d', $Configuration::downloadDir, '--on-download-complete', "$Configuration::baseDir/bin/complete.pl", '-V', '-s', 1);
-	system @cmd;
-	print $!;
+	system @cmd or die $!;
 }
 
 1;
