@@ -30,5 +30,4 @@ Using hltc:
  - just run hltc.pl (./hltc.pl)
 
 Limitations:
- - Right after starting the downloader the urls are reported as completed.
- - even more stuff...
+ - Only call it once per happy hour.
