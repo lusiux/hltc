@@ -19,26 +19,60 @@ use strict;
 use warnings;
 
 use Data::Dumper;
+use DateTime;
 use FindBin;
 use lib "$FindBin::Bin/inc";
 
 use Configuration;
 use aria2;
+use storage;
 use hltv;
 use hltvLinkList;
 
-print "Connecting to homeloadtv account";
+sub getTimeTillHHEnd {
+	my $start = shift;
+	my $end = shift;
+
+	$start = $start*60*60;
+	$end = $end*60*60;
+
+	my $nowDt = DateTime->now();
+	$nowDt->set_time_zone( 'Europe/Berlin' );
+
+	my $now = $nowDt->hour*60*60+$nowDt->minute*60+$nowDt->second;
+
+	return $end - $now - 5*60;
+}
+
+print "Connecting to homeloadtv account\n";
 my $hltv = new hltv($Configuration::userId, $Configuration::username, $Configuration::password);
 my $aria2 = new aria2();
 
-my $linkList = $hltv->getNewLinks();
+$aria2->startUp();
+$aria2->pauseAllDownloads(); # Just to make sure, no download is unpaused outside the happy hour.
+
+my $db = new storage();
+
+# Only get otr links in happy hour
+my $linkList = $hltv->getNewLinks(1);
+my $delta = 0;
+
 if ( $linkList->error() ) {
 	warn $linkList->error();
 } else {
+	$delta = getTimeTillHHEnd($linkList->getHHStart(), $linkList->getHHStart());
+
+	if ( $delta > 0 ) {
+		printf STDERR "We have %d seconds till the end of the happy hour.\n", $delta;
+		$aria2->stopIn($delta);
+	} else {
+		print STDERR "We are not in happy hour.\n";
+	}
+
 	print $hltv->ackList($linkList);
 	my $linkListRef = $linkList->getLinks();
 
-	my $count = $linkList->getNumberOfLinks();
+	my $count = scalar keys %{$linkListRef};
 	my $counter = 0;
 
 	print "\nFound $count link(s)\n";
@@ -48,15 +82,15 @@ if ( $linkList->error() ) {
 		$counter++;
 
 		print "\n\tStarting download of ($counter/$count): $url";
-
-		$aria2->startDownload($url);
-
-		my $ret = $hltv->finishLink($id);
+		my $gid = $aria2->startDownload($url);
+		$db->addDownload($gid, $aria2->getSessionId(), $id, $url);
 		print "\n";
 	}
 }
 
 print "\n";
 
-print "Resuming old downloads\n";
-$aria2->resumeAllDownloads();
+if ( $delta > 0 ) {
+	print "Resuming old downloads\n";
+	$aria2->resumeAllDownloads();
+}

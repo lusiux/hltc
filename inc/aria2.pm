@@ -19,7 +19,6 @@ use RPC::XML;
 use RPC::XML::Client;
 
 use Configuration;
-use Helper;
 
 # Configuration
 my $rpcUrl = 'http://localhost/rpc/';
@@ -27,12 +26,63 @@ my $rpcUrl = 'http://localhost/rpc/';
 sub new {
 	my ($class) = @_;
 
-	Helper::startupScreen($Configuration::screenToAttachTo);
-
 	my $rpc = RPC::XML::Client->new('http://localhost:6800/rpc');
-	my $self = {rpc=>$rpc};
+	my $self = {rpc=>$rpc, startUpComplete=>0,};
 
 	return bless $self, $class;
+}
+
+sub startUp {
+	my $this = shift;
+
+	# Check if screen is running
+	my @cmd = ($Configuration::baseDir . '/bin/isScreenRunning.sh', $Configuration::screenToAttachTo);
+	system @cmd;
+	if ( $? == 0 ) {
+		return -1;
+	}
+
+	# Start screen with an instance of aria2 in daemon mode
+	@cmd = (
+	'screen', '-dmS', $Configuration::screenToAttachTo,
+	'-c', "$Configuration::baseDir/etc/screenrc", 
+	'aria2c',
+	'--retry-wait=30',
+	'-m', '0',
+	'--enable-rpc',
+	'-l', "$Configuration::logDir/aria2c.log",
+	'-d', $Configuration::downloadDir,
+	'--on-download-complete', "$Configuration::baseDir/bin/complete.pl",
+	'-V',
+	'-s', 1,
+	"--save-session=$Configuration::baseDir/etc/aria.session",
+	);
+
+	if ( -f "$Configuration::baseDir/etc/aria.session" ) {
+		push @cmd, '-i', "$Configuration::baseDir/etc/aria.session";
+	}
+
+	system @cmd and die $! . "\nCommand: " . join ' ', @cmd;
+
+	sleep(2);
+
+	$this->{startUpComplete} = 1;
+
+	return 0;
+}
+
+sub getSessionId {
+	my ($this) = @_;
+
+	my $response = $this->{rpc}->simple_request('aria2.getSessionInfo');
+
+	if ( $response ) {
+		return $response->{sessionId};
+	} else {
+		print STDERR $RPC::XML::ERROR . "\n";
+		return undef;
+	}
+
 }
 
 sub startDownload {
@@ -80,6 +130,88 @@ sub resumeAllDownloads {
 
 	print STDERR $RPC::XML::ERROR . "\n";
 	return -1;
+}
+
+sub shutdown {
+	my ($this) = @_;
+
+	my $response = $this->{rpc}->simple_request('aria2.shutdown');
+
+	if ( $response ) {
+		if ( $response eq 'OK' ) {
+			return 0;
+		} else {
+			return 1;
+		}
+	}
+
+	print STDERR $RPC::XML::ERROR . "\n";
+	return -1;
+}
+
+sub getGlobalOption {
+	my ($this) = @_;
+
+	my $response = $this->{rpc}->simple_request('aria2.getGlobalOption');
+
+	if ( $response ) {
+		return $response;
+	}
+
+	print STDERR $RPC::XML::ERROR . "\n";
+	return -1;
+}
+
+sub setGlobalOption {
+	my ($this, $url, $key, $value) = @_;
+
+	my $response = $this->{rpc}->simple_request('aria2.changeGlobalOption', { $key, $value } );
+
+	if ( $response ) {
+		return $response;
+	} else {
+		print STDERR $RPC::XML::ERROR . "\n";
+		return undef;
+	}
+}
+
+sub isRunning {
+	my ($this) = @_;
+
+	if ( $this->{startUpComplete} ) {
+		return 1;
+	}
+
+	my $response = $this->{rpc}->simple_request('aria2.getSessionInfo' );
+
+	if ( $response ) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+sub stopIn {
+	my ($this, $seconds) = @_;
+
+	if ( $seconds <= 0 ) {
+		print STDERR "Parameter seconds has to be greater than 0\n";
+		exit 1;
+	}
+
+	if ( ! $this->isRunning() ) {
+		print "Aria is not running. So call to stopIn is senseless\n";
+		return;
+	}
+
+	my @cmd = (
+	'screen', '-S', $Configuration::screenToAttachTo,
+	'-X', 
+	'screen',
+	"$Configuration::baseDir/bin/stoparia2.pl", $seconds,
+	);
+
+	system @cmd and die $! . "\nCommand was: " . join ' ', @cmd;
 }
 
 1;

@@ -21,6 +21,9 @@ use FindBin;
 use lib "$FindBin::Bin/../inc";
 
 use Configuration;
+use storage;
+use hltv;
+use aria2;
 
 my $gid = $ARGV[0];
 my $numberOfFiles = $ARGV[1];
@@ -30,3 +33,13 @@ my $fileName = $filePath;
 $fileName =~ s/^.*\/([^\/]+)$/$1/;
 
 rename $filePath, $Configuration::downloadCompleteDir . '/' . $fileName;
+
+my $db = new storage();
+my $hltv = new hltv($Configuration::userId, $Configuration::username, $Configuration::password);
+my $aria2 = new aria2();
+
+my $hltvId = $db->getHltvIdFromGid($gid, $aria2->getSessionId());
+
+print "Finishing $hltvId\n";
+
+$hltv->finishLink($hltvId);

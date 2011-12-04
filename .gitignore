@@ -2,3 +2,4 @@ inc/Configuration.pm
 logs/
 temp/
 downloads/
+etc/aria.session
