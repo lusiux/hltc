@@ -78,8 +78,13 @@ sub retry {
 
 sub getNewLinks {
 	my $self = shift;
+	my $onlyHH = shift;
 
 	my $listString = $baseUrl . '?do=getlinks&uid=' . $self->{userId} . '&password=' . $self->{password};
+
+	if ( $onlyHH ) {
+		$listString .= '&onlyhh=true';
+	}
 
 	my $res = $self->waitGet($listString);
 
@@ -143,7 +148,6 @@ sub finishLink {
 	close(CUR);
 
 	return $res->content;
-
 }
 
 1;

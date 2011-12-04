@@ -62,6 +62,16 @@ sub getNumberOfLinks {
 	return $self->{number_of_links};
 }
 
+sub getHHStart {
+	my $self = shift;
+	return $self->{hhstart};
+}
+
+sub getHHEnd {
+	my $self = shift;
+	return $self->{hhend};
+}
+
 sub getLinksOnServer {
 	my $self = shift;
 	return $self->{linkcount};
