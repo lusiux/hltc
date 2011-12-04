@@ -24,7 +24,6 @@ Installation:
  - Move the file inc/Configuration.pm.sample to inc/Configuration.pm
  - Edit the file inc/Configuration.pm and enter your homeloadtv.com user id,
    email address and password
- - If you like to use hltc with cron please read the file doc/cron.de.txt
 
 Using hltc:
  - Go to the directory with the source files.
