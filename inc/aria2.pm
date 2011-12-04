@@ -51,6 +51,7 @@ sub startUp {
 	'-m', '0',
 	'--enable-rpc',
 	'-l', "$Configuration::logDir/aria2c.log",
+	'--log-level=warn',
 	'-d', $Configuration::downloadDir,
 	'--on-download-complete', "$Configuration::baseDir/bin/complete.pl",
 	'-V',
