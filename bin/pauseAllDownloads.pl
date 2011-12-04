@@ -24,13 +24,9 @@ use lib "$FindBin::Bin/../inc";
 
 use aria2;
 
-print "27\n";
-
 my $aria2 = new aria2();
-print "30\n";
 
 my $retVal = $aria2->pauseAllDownloads();
-print "23\n";
 if ( $retVal != 0 ) {
 	print STDERR "An error occured\n";
 }
