@@ -60,7 +60,7 @@ my $delta = 0;
 if ( $linkList->error() ) {
 	warn $linkList->error();
 } else {
-	$delta = getTimeTillHHEnd($linkList->getHHStart(), $linkList->getHHStart());
+	$delta = getTimeTillHHEnd($linkList->getHHStart(), $linkList->getHHEnd());
 
 	if ( $delta > 0 ) {
 		printf STDERR "We have %d seconds till the end of the happy hour.\n", $delta;
