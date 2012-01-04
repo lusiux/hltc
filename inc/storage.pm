@@ -47,6 +47,28 @@ sub addDownload {
 	$dbh->commit();
 }
 
+sub isUrlKnown {
+	my ($this, $url) = @_;
+
+	my $dbh = $this->{dbh};
+
+	my $sql = "select * from downloads where url=?";
+
+	my $query = $dbh->prepare($sql);
+	$query->execute($url);
+	if ( $dbh->err() ) {
+		die "$DBI::errstr\n";
+	}
+
+	my $ref = $query->fetchrow_hashref();
+
+	if ( ! defined $ref ) {
+		return undef;
+	} else {
+		return $ref;
+	}
+}
+
 sub getHltvIdFromGid {
 	my ($this, $gid, $session) = @_;
 
@@ -60,12 +82,60 @@ sub getHltvIdFromGid {
 		die "$DBI::errstr\n";
 	}
 
-	my $hltv = $query->fetchrow_hashref()->{hltv};
+	my $ref = $query->fetchrow_hashref();
+
+	if ( ! defined $ref ) {
+		return undef;
+	}
+
+	my $hltv = $ref->{hltv};
+
+	if ( ! $hltv ) {
+		return undef;
+	}
 
 	$sql = "delete from downloads where gid=? and session=?";
 
 	$query = $dbh->prepare($sql);
 	$query->execute($gid, $session);
+	if ( $dbh->err() ) {
+		die "$DBI::errstr\n";
+	}
+
+	$dbh->commit();
+
+	return $hltv;
+}
+
+sub getHltvIdFromUri{
+	my ($this, $url) = @_;
+
+	my $dbh = $this->{dbh};
+
+	my $sql = "select * from downloads where url=?";
+
+	my $query = $dbh->prepare($sql);
+	$query->execute($url);
+	if ( $dbh->err() ) {
+		die "$DBI::errstr\n";
+	}
+
+	my $ref = $query->fetchrow_hashref();
+
+	if ( ! defined $ref ) {
+		return undef;
+	}
+
+	my $hltv = $ref->{hltv};
+
+	if ( ! $hltv ) {
+		return undef;
+	}
+
+	$sql = "delete from downloads where url=?";
+
+	$query = $dbh->prepare($sql);
+	$query->execute($url);
 	if ( $dbh->err() ) {
 		die "$DBI::errstr\n";
 	}

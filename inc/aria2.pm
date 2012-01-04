@@ -19,6 +19,7 @@ use RPC::XML;
 use RPC::XML::Client;
 
 use Configuration;
+use Data::Dumper;
 
 # Configuration
 my $rpcUrl = 'http://localhost/rpc/';
@@ -49,9 +50,10 @@ sub startUp {
 	'aria2c',
 	'--retry-wait=30',
 	'-m', '0',
-	'--enable-rpc',
+	'--enable-rpc=true',
+	"--pause=true",
 	'-l', "$Configuration::logDir/aria2c.log",
-	'--log-level=warn',
+#	'--log-level=warn',
 	'-d', $Configuration::downloadDir,
 	'--on-download-complete', "$Configuration::baseDir/bin/complete.pl",
 	'-V',
@@ -83,13 +85,38 @@ sub getSessionId {
 		print STDERR $RPC::XML::ERROR . "\n";
 		return undef;
 	}
+}
 
+sub pauseDownload {
+	my ($this, $gid) = @_;
+
+	my $response = $this->{rpc}->simple_request('aria2.pause', RPC::XML::string->new($gid));
+
+	if ( $response eq 'OK' ) {
+		return $response;
+	} else {
+		print STDERR $RPC::XML::ERROR . "\n";
+		return undef;
+	}
+}
+
+sub unpauseDownload {
+	my ($this, $gid) = @_;
+
+	my $response = $this->{rpc}->simple_request('aria2.unpause', RPC::XML::string->new($gid));
+
+	if ( $response eq 'OK' ) {
+		return $response;
+	} else {
+		print STDERR $RPC::XML::ERROR . "\n";
+		return undef;
+	}
 }
 
 sub startDownload {
 	my ($this, $url) = @_;
 
-	my $response = $this->{rpc}->simple_request('aria2.addUri', [ $url ]);
+	my $response = $this->{rpc}->simple_request('aria2.addUri', [ $url ], {'pause' => 'true'});
 
 	if ( $response ) {
 		return $response;
@@ -161,6 +188,25 @@ sub getGlobalOption {
 
 	print STDERR $RPC::XML::ERROR . "\n";
 	return -1;
+}
+
+sub getUrisFromGid {
+	my ($this, $gid) = @_;
+
+	return undef;
+
+	print $gid;
+
+#	my $response = $this->{rpc}->simple_request('aria2.getFiles', $this->{rpc}->string($gid));
+
+	print Dumper($response);
+
+	if ( $response->{uris}->[0]->{uri} ) {
+		return $response->{uri};
+	}
+
+	print STDERR $RPC::XML::ERROR . "\n";
+	return undef;
 }
 
 sub setGlobalOption {

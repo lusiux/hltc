@@ -21,6 +21,7 @@ use LWP::UserAgent;
 use HTTP::Cookies;
 use Digest::MD5 qw(md5_hex);
 use hltvLinkList;
+use DateTime;
 
 # Configuration
 my $baseUrl = 'http://www.homeloadtv.com/api/';
@@ -34,6 +35,8 @@ sub new {
 		password => md5_hex($password),
 		userId => $userId,
 		lastRequest => 0,
+		hhStart => undef,
+		hhEnd => undef,
 	};
 
 	$self->{ua} = new LWP::UserAgent();
@@ -74,6 +77,65 @@ sub retry {
 		sleep $sleep;
 	}
 	return 0;
+}
+
+sub requestHHTime {
+	my $self = shift;
+
+	my $listString = $baseUrl . '?do=gethhtime';
+
+	my $res = $self->waitGet($listString);
+
+	die 'Could not get happy hour time' unless $res->is_success;
+
+	# HHSTART=0;HHEND=8;
+
+	my @pairs = split /;/, $res->content;
+	foreach ( @pairs ) {
+		my ($key, $value) = split /=/, $_;
+
+		if ( $key eq 'HHSTART' ) {
+			$self->{hhStart} = $value;
+		} elsif ( $key eq 'HHEND' ) {
+			$self->{hhEnd} = $value;
+		} else {
+			warn "Unknown key value pair: $_\n";
+		}
+	}
+}
+
+sub getHHEnd {
+	my $this = shift;
+
+	if ( ! $this->{hhStart} && ! $this->{hhEnd} ) {
+		$this->requestHHTime();
+	}
+
+	return $this->{hhEnd};
+}
+
+sub getHHStart {
+	my $this = shift;
+
+	if ( ! $this->{hhStart} && ! $this->{hhEnd} ) {
+		$this->requestHHTime();
+	}
+
+	return $this->{hhStart};
+}
+
+sub getTimeTillHHEnd {
+	my $this = shift;
+
+	my $start = $this->getHHStart()*60*60;
+	my $end = $this->getHHEnd()*60*60;
+
+	my $nowDt = DateTime->now();
+	$nowDt->set_time_zone( 'Europe/Berlin' );
+
+	my $now = $nowDt->hour*60*60+$nowDt->minute*60+$nowDt->second;
+
+	return $end - $now - 5*60;
 }
 
 sub getNewLinks {
