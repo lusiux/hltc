@@ -34,14 +34,25 @@ my $aria2 = new aria2();
 my $db = new storage();
 
 $aria2->startUp();
+my $sessionId = $aria2->getSessionId();
+$db->updateGids($sessionId, $aria2->getPausedDownloads());
 
 my $delta = $hltv->getTimeTillHHEnd();
 
 if ( $delta > 0 ) {
 	printf STDERR "We have %d seconds till the end of the happy hour.\n", $delta;
 	$aria2->stopIn($delta);
-	print "Resuming old downloads\n";
-	$aria2->resumeAllDownloads();
+
+	print "Resuming old otr downloads\n";
+
+	my $gids = $db->getOnePausedOtrUrlPerHost();
+	foreach ( keys %$gids ) {
+		my $dl = $gids->{$_};
+		my $gid = $dl->{gid};
+		print "Unpausing gid $gid\n";
+		$db->updateState($dl->{id}, 2);
+		$aria2->unpauseDownload($gid);
+	}
 } else {
 	print STDERR "We are not in happy hour.\n";
 }
@@ -69,9 +80,31 @@ if ( $linkList->error() ) {
 			print "\nAlready downloading URL\n";
 			next;
 		}
+
+		$url =~ /https?:\/\/([^\/]*)\//;
+		my $host = $1;
+
+		my $otrUrl = 0;
+		if ( $url =~ /http:\/\/81\.95\.11\./ ) {
+			$otrUrl = 1;
+		}
+
 		my $gid = $aria2->startDownload($url);
-		$db->addDownload($gid, $aria2->getSessionId(), $id, $url);
-		$aria2->unpauseDownload($gid);
+		my $url_id = $db->addDownload($url, $host, $otrUrl, 1);
+		$db->setGidForUrl($url_id, $gid, $aria2->getSessionId());
+		$db->addHltvIdToUrl($url_id, $id);
+
+		if ( $otrUrl ) {
+			# Check for active download with same host
+			if ( $db->getActiveUrlsForHost($host) == 0) {
+				$db->updateState($url_id, 2);
+				$aria2->unpauseDownload($gid);
+			}
+		} else {
+			$db->updateState($url_id, 2);
+			$aria2->unpauseDownload($gid);
+		}
+
 		print "\n";
 	}
 }

@@ -22,22 +22,26 @@ use FindBin;
 use lib "$FindBin::Bin/../inc";
 
 use aria2;
+use storage;
 
 my $aria2 = new aria2();
+my $db = new storage();
 
 if ( scalar @ARGV == 1 ) {
 	print "Waiting $ARGV[0] seconds\n";
 	sleep $ARGV[0];
 }
 
-my $retVal = $aria2->pauseAllDownloads();
+my $dls = $db->getRunningOtrUrls();
 
-if ( $retVal != 0 ) {
-	print STDERR "An error occured\n";
+if ( ! $dls ) {
+	print "Nothing to do for me\n";
+	exit(0);
 }
 
-$retVal = $aria2->shutdown();
+foreach ( keys %$dls ) {
+	my $dl = $dls->{$_};
 
-if ( $retVal != 0 ) {
-	print STDERR "An error occured\n";
+	$db->updateState($dl->{id}, 1);
+	$aria2->pauseDownload($dl->{gid});
 }

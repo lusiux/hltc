@@ -17,26 +17,15 @@
 
 use strict;
 use warnings;
-
 use Data::Dumper;
+
 use FindBin;
 use lib "$FindBin::Bin/../inc";
 
-use Configuration;
 use aria2;
-use storage;
 
 my $aria2 = new aria2();
-my $db = new storage();
 
-$aria2->startUp();
-my $sessionId = $aria2->getSessionId();
-$db->updateGids($sessionId, $aria2->getPausedDownloads());
-my $gids = $db->getOnePausedOtrUrlPerHost();
-foreach ( keys %$gids ) {
-	my $dl = $gids->{$_};
-	my $gid = $dl->{gid};
-	print "Unpausing gid $gid\n";
-	$db->updateState($dl->{id}, 2);
-	$aria2->unpauseDownload($gid);
-}
+my $retVal = $aria2->getGlobalOption();
+
+print Dumper $retVal;

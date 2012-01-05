@@ -18,25 +18,46 @@
 use strict;
 use warnings;
 
-use Data::Dumper;
 use FindBin;
 use lib "$FindBin::Bin/../inc";
 
-use Configuration;
 use aria2;
 use storage;
+
+if ( scalar @ARGV != 1 ) {
+	print STDERR "Usage: $0 <url>\n";
+	exit 1;
+}
+
+my $url = $ARGV[0];
 
 my $aria2 = new aria2();
 my $db = new storage();
 
-$aria2->startUp();
-my $sessionId = $aria2->getSessionId();
-$db->updateGids($sessionId, $aria2->getPausedDownloads());
-my $gids = $db->getOnePausedOtrUrlPerHost();
-foreach ( keys %$gids ) {
-	my $dl = $gids->{$_};
-	my $gid = $dl->{gid};
-	print "Unpausing gid $gid\n";
-	$db->updateState($dl->{id}, 2);
+if ( $db->isUrlKnown($url) ) {
+	print "\nAlready downloading URL\n";
+	exit 1;
+}
+
+$url =~ /https?:\/\/([^\/]*)\//;
+my $host = $1;
+
+my $otrUrl = 0;
+if ( $url =~ /http:\/\/81\.95\.11\./ ) {
+	$otrUrl = 1;
+}
+
+my $gid = $aria2->startDownload($url);
+my $url_id = $db->addDownload($url, $host, $otrUrl, 1);
+$db->setGidForUrl($url_id, $gid, $aria2->getSessionId());
+
+if ( $otrUrl ) {
+	# Check for active download with same host
+	if ( $db->getActiveUrlsForHost($host) == 0) {
+		$db->updateState($url_id, 2);
+		$aria2->unpauseDownload($gid);
+	}
+} else {
+	$db->updateState($url_id, 2);
 	$aria2->unpauseDownload($gid);
 }

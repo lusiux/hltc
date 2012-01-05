@@ -50,14 +50,17 @@ sub startUp {
 	'aria2c',
 	'--retry-wait=30',
 	'-m', '0',
-	'--enable-rpc=true',
-	"--pause=true",
+	'--enable-rpc',
+	"--pause",
 	'-l', "$Configuration::logDir/aria2c.log",
 #	'--log-level=warn',
 	'-d', $Configuration::downloadDir,
 	'--on-download-complete', "$Configuration::baseDir/bin/complete.pl",
+	'--on-download-error', "$Configuration::baseDir/bin/error.pl",
+#	'--on-download-pause', "$Configuration::baseDir/bin/pause.pl",
 	'-V',
 	'-s', 1,
+	'-j', 10,
 	"--save-session=$Configuration::baseDir/etc/aria.session",
 	);
 
@@ -193,16 +196,10 @@ sub getGlobalOption {
 sub getUrisFromGid {
 	my ($this, $gid) = @_;
 
-	return undef;
+	my $response = $this->{rpc}->simple_request('aria2.getFiles', RPC::XML::string->new($gid));
 
-	print $gid;
-
-#	my $response = $this->{rpc}->simple_request('aria2.getFiles', $this->{rpc}->string($gid));
-
-	print Dumper($response);
-
-	if ( $response->{uris}->[0]->{uri} ) {
-		return $response->{uri};
+	if ( $response->[0]->{uris}->[0]->{uri} ) {
+		return $response->[0]->{uris}->[0]->{uri};
 	}
 
 	print STDERR $RPC::XML::ERROR . "\n";
@@ -259,6 +256,28 @@ sub stopIn {
 	);
 
 	system @cmd and die $! . "\nCommand was: " . join ' ', @cmd;
+}
+
+sub getPausedDownloads {
+	my ($this) = @_;
+
+	my $retVal={};
+
+	my $response = $this->{rpc}->simple_request('aria2.tellWaiting', 0, 1000);
+
+	if ( ! $response ) {
+		print STDERR $RPC::XML::ERROR . "\n";
+		return undef;
+	}
+
+	foreach ( @$response ) {
+		my $dl = $_;
+
+		my $url = $dl->{files}->[0]->{uris}->[0]->{uri};
+		$retVal->{$dl->{gid}} = $url;
+	}
+
+	return $retVal;
 }
 
 1;

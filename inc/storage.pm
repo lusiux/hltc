@@ -32,14 +32,44 @@ sub new {
 }
 
 sub addDownload {
-	my ($this, $gid, $session, $hltv, $url) = @_;
+	my ($this, $url, $host, $otr, $state) = @_;
 
 	my $dbh = $this->{dbh};
 
-	my $sql = "insert into downloads (gid, session, hltv, url) values (?, ?, ?, ?)";
+#CREATE TABLE urls ("id" INTEGER PRIMARY KEY AUTOINCREMENT, "url" text NOT NULL, "host" text NOT NULL, "otr" int not NULL, "state" int not NULL);
+	my $sql = "insert into urls (url, host, otr, state) values (?, ?, ?, ?)";
 
 	my $query = $dbh->prepare($sql);
-	$query->execute($gid, $session, $hltv, $url);
+	$query->execute($url, $host, $otr, $state);
+	if ( $dbh->err() ) {
+		die "$DBI::errstr\n";
+	}
+
+	$dbh->commit();
+
+	$sql = "select last_insert_rowid();";
+	$query = $dbh->prepare($sql);
+	$query->execute();
+
+	if ( $dbh->err() ) {
+		die "$DBI::errstr\n";
+	}
+
+	my ($id) = $query->fetchrow_array();
+
+	return $id;
+}
+
+sub addHltvIdToUrl {
+	my ($this, $url_id, $hltv_id) = @_;
+
+	my $dbh = $this->{dbh};
+
+#CREATE TABLE hltv("url_id" int primary key, "hltv_id" int not null);
+	my $sql = "insert into hltv (url_id, hltv_id) values (?, ?)";
+
+	my $query = $dbh->prepare($sql);
+	$query->execute($url_id, $hltv_id);
 	if ( $dbh->err() ) {
 		die "$DBI::errstr\n";
 	}
@@ -47,12 +77,28 @@ sub addDownload {
 	$dbh->commit();
 }
 
-sub isUrlKnown {
+sub updateState {
+	my ($this, $url_id, $state) = @_;
+
+	my $dbh = $this->{dbh};
+
+#CREATE TABLE hltv("url_id" int primary key, "hltv_id" int not null);
+	my $sql = "update urls set state=? where id=?;";
+
+	my $query = $dbh->prepare($sql);
+	$query->execute($state, $url_id);
+	if ( $dbh->err() ) {
+		die "$DBI::errstr\n";
+	}
+	$dbh->commit();
+}
+
+sub getInfoByUrl {
 	my ($this, $url) = @_;
 
 	my $dbh = $this->{dbh};
 
-	my $sql = "select * from downloads where url=?";
+	my $sql = "select * from urls where url=?";
 
 	my $query = $dbh->prepare($sql);
 	$query->execute($url);
@@ -69,50 +115,12 @@ sub isUrlKnown {
 	}
 }
 
-sub getHltvIdFromGid {
-	my ($this, $gid, $session) = @_;
-
-	my $dbh = $this->{dbh};
-
-	my $sql = "select * from downloads where gid=? and session=?";
-
-	my $query = $dbh->prepare($sql);
-	$query->execute($gid, $session);
-	if ( $dbh->err() ) {
-		die "$DBI::errstr\n";
-	}
-
-	my $ref = $query->fetchrow_hashref();
-
-	if ( ! defined $ref ) {
-		return undef;
-	}
-
-	my $hltv = $ref->{hltv};
-
-	if ( ! $hltv ) {
-		return undef;
-	}
-
-	$sql = "delete from downloads where gid=? and session=?";
-
-	$query = $dbh->prepare($sql);
-	$query->execute($gid, $session);
-	if ( $dbh->err() ) {
-		die "$DBI::errstr\n";
-	}
-
-	$dbh->commit();
-
-	return $hltv;
-}
-
-sub getHltvIdFromUri{
+sub isUrlKnown {
 	my ($this, $url) = @_;
 
 	my $dbh = $this->{dbh};
 
-	my $sql = "select * from downloads where url=?";
+	my $sql = "select * from urls where url=?;";
 
 	my $query = $dbh->prepare($sql);
 	$query->execute($url);
@@ -124,25 +132,166 @@ sub getHltvIdFromUri{
 
 	if ( ! defined $ref ) {
 		return undef;
+	} else {
+		return $ref;
 	}
+}
 
-	my $hltv = $ref->{hltv};
+sub getHltvIdFromId{
+	my ($this, $urlId) = @_;
 
-	if ( ! $hltv ) {
-		return undef;
-	}
+	my $dbh = $this->{dbh};
 
-	$sql = "delete from downloads where url=?";
+	my $sql = "select * from hltv where url_id=?";
 
-	$query = $dbh->prepare($sql);
-	$query->execute($url);
+	my $query = $dbh->prepare($sql);
+	$query->execute($urlId);
 	if ( $dbh->err() ) {
 		die "$DBI::errstr\n";
 	}
 
-	$dbh->commit();
+	my $ref = $query->fetchrow_hashref();
 
-	return $hltv;
+	if ( ! defined $ref ) {
+		return undef;
+	}
+
+	return  $ref->{hltv_id};
+}
+
+sub getActiveUrlsForHost {
+	my ($this, $host) = @_;
+
+	my $dbh = $this->{dbh};
+
+	my $sql = "select count(url) from urls where state=2 and host=?;";
+
+	my $query = $dbh->prepare($sql);
+	$query->execute($host);
+	if ( $dbh->err() ) {
+		die "$DBI::errstr\n";
+	}
+
+	my ($count) = $query->fetchrow_array();
+
+	return $count;
+}
+
+sub clearOldGids {
+	my ($this, $session_id) = @_;
+
+	my $dbh = $this->{dbh};
+
+	my $sql = "delete from aria2 where session_id !=?;";
+
+	my $query = $dbh->prepare($sql);
+	$query->execute($session_id) or warn $dbh->errstr;
+	if ( $dbh->err() ) {
+		die "$DBI::errstr\n";
+	}
+	$dbh->commit();
+}
+
+sub setGidForUrl {
+	my ($this, $url_id, $gid, $session_id) = @_;
+
+	my $dbh = $this->{dbh};
+
+	my $sql = "insert into aria2 (url_id, session_id, gid) values (?,?,?);";
+
+	my $query = $dbh->prepare($sql);
+
+	$query->execute($url_id, $session_id, $gid);
+	if ( $dbh->err() ) {
+		die "$DBI::errstr\n";
+	}
+	$dbh->commit();
+}
+
+sub updateGids {
+	my ($this, $session_id, $gidUrlHashRef) = @_;
+
+	$this->clearOldGids($session_id);
+
+	my $dbh = $this->{dbh};
+
+	my $sql = "insert into aria2 (url_id, session_id, gid) select (select id from urls where url=?), ?,? where not exists (select 1 from aria2 where url_id=(select id from urls where url=?));";
+
+	my $query = $dbh->prepare($sql);
+
+	foreach ( keys %$gidUrlHashRef ) {
+		my $gid = $_;
+		my $url = $gidUrlHashRef->{$gid};
+		$query->execute($url, $session_id, $gid, $url);
+		if ( $dbh->err() ) {
+			die "$DBI::errstr\n";
+		}
+	}
+	$dbh->commit();
+}
+
+sub getPausedOtrUrlForHost {
+	my ($this,$host) = @_;
+
+	my $dbh = $this->{dbh};
+
+	my $sql = "select urls.id as id, aria2.gid as gid from urls join aria2 on urls.id = aria2.url_id where urls.state=1 and urls.otr=1 and host=? group by urls.host;";
+
+	my $query = $dbh->prepare($sql);
+	$query->execute($host);
+	if ( $dbh->err() ) {
+		die "$DBI::errstr\n";
+	}
+
+	return $query->fetchrow_hashref();
+}
+
+sub getOnePausedOtrUrlPerHost {
+	my ($this) = @_;
+
+	my $dbh = $this->{dbh};
+
+	my $sql = "select urls.id as id, aria2.gid as gid from urls join aria2 on urls.id = aria2.url_id where urls.state=1 and urls.otr=1 group by urls.host;";
+
+	my $query = $dbh->prepare($sql);
+	$query->execute();
+	if ( $dbh->err() ) {
+		die "$DBI::errstr\n";
+	}
+
+	return $query->fetchall_hashref('id');
+}
+
+sub getRunningOtrUrls {
+	my ($this) = @_;
+
+	my $dbh = $this->{dbh};
+
+	my $sql = "select urls.id as id, aria2.gid as gid from urls join aria2 on urls.id = aria2.url_id where urls.state=2 and urls.otr=1";
+
+	my $query = $dbh->prepare($sql);
+	$query->execute();
+	if ( $dbh->err() ) {
+		die "$DBI::errstr\n";
+	}
+
+	return $query->fetchall_hashref('id');
+}
+
+sub getPausedNonOtrUrls {
+	my ($this) = @_;
+
+	my $dbh = $this->{dbh};
+
+	my $sql = "select aria2.gid as gid from urls join aria2 on urls.id = aria2.url_id where urls.state=1 and urls.otr=0;";
+
+	my $query = $dbh->prepare($sql);
+	$query->execute();
+	if ( $dbh->err() ) {
+		die "$DBI::errstr\n";
+	}
+
+	return $query->fetchall_arrayref([0]);
 }
 
 1;

@@ -3,3 +3,4 @@ logs/
 temp/
 downloads/
 etc/aria.session
+etc/downloads.sqlite

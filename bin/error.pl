@@ -17,7 +17,6 @@
 use strict;
 use warnings;
 
-use Data::Dumper;
 use FindBin;
 use lib "$FindBin::Bin/../inc";
 
@@ -38,40 +37,22 @@ my $filePath = $ARGV[2];
 my $fileName = $filePath;
 $fileName =~ s/^.*\/([^\/]+)$/$1/;
 
-open OUT, ">> $Configuration::baseDir/logs/complete.log" or die $!;
+open OUT, ">> $Configuration::baseDir/logs/error.log" or die $!;
 print OUT "$fileName\n";
-system('mv', $filePath, $Configuration::downloadCompleteDir . '/' . $fileName);
+close OUT;
 
 my $db = new storage();
 my $aria2 = new aria2();
 
-my $url = $aria2->getUrisFromGid($gid);
+my $url = $aria2->getUriFromGid($gid);
+my $info = $db->getInfoByUrl($url);
 
-if ( $url ) {
-	my $info = $db->getInfoByUrl($url);
+$db->updateState($info->{id}, 4);
 
-#	print Dumper ($info);
+$url =~ /https?:\/\/([^\/]*)\//;
+my $host = $1;
 
-	$db->updateState($info->{id}, 3);
-
-	$url =~ /https?:\/\/([^\/]*)\//;
-	my $host = $1;
-
-	if ( (my $nextDl = $db->getPausedOtrUrlForHost($host)) ) {
-		$db->updateState($nextDl->{id}, 2);
-		$aria2->unpauseDownload($nextDl->{gid});
-	}
-
-	my $hltvId = $db->getHltvIdFromId($info->{id});
-
-	if ( $hltvId ) {
-		my $hltv = new hltv($Configuration::userId, $Configuration::username, $Configuration::password);
-		print OUT "Finishing $hltvId\n";
-
-		print OUT $hltv->finishLink($hltvId);
-	}
+if ( (my $nextDl = $db->getPausedOtrUrlForHost($host)) ) {
+	$db->updateState($nextDl->{id}, 2);
+	$aria2->unpauseDownload($nextDl->{gid});
 }
-
-print OUT "\n";
-
-close OUT;
