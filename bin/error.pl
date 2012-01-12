@@ -44,7 +44,7 @@ close OUT;
 my $db = new storage();
 my $aria2 = new aria2();
 
-my $url = $aria2->getUriFromGid($gid);
+my $url = $aria2->getUrisFromGid($gid);
 my $info = $db->getInfoByUrl($url);
 
 $db->updateState($info->{id}, 4);
