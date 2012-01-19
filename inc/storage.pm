@@ -294,4 +294,9 @@ sub getPausedNonOtrUrls {
 	return $query->fetchall_arrayref([0]);
 }
 
+sub disconnect {
+	my ($this) = @_;
+	$this->{dbh}->disconnect();
+}
+
 1;

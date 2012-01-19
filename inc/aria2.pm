@@ -280,4 +280,19 @@ sub getPausedDownloads {
 	return $retVal;
 }
 
+sub purgeDownloadResult {
+	my ($this) = @_;
+
+	my $retVal={};
+
+	my $response = $this->{rpc}->simple_request('aria2.purgeDownloadResult');
+
+	if ( ! $response ) {
+		print STDERR $RPC::XML::ERROR . "\n";
+		return undef;
+	}
+
+	return $response;
+}
+
 1;

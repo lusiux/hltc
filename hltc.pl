@@ -35,6 +35,7 @@ my $db = new storage();
 
 $aria2->startUp();
 my $sessionId = $aria2->getSessionId();
+$aria2->purgeDownloadResult();
 $db->updateGids($sessionId, $aria2->getPausedDownloads());
 
 my $delta = $hltv->getTimeTillHHEnd();
@@ -78,6 +79,7 @@ if ( $linkList->error() ) {
 		print "\n\tStarting download of ($counter/$count): $url";
 		if ( $db->isUrlKnown($url) ) {
 			print "\nAlready downloading URL\n";
+			print $hltv->finishLink($id) . "\n";
 			next;
 		}
 
@@ -108,5 +110,7 @@ if ( $linkList->error() ) {
 		print "\n";
 	}
 }
+
+$db->disconnect();
 
 print "\n";
