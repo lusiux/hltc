@@ -20,7 +20,7 @@ Upgrading:
    is not running anymore. (Try: screen -list)
  - Remove old database file and create a new database with the current schema:
    * rm etc/downloads.sqlite
-   * echo etc/schema.sql > sqlite3 etc/downloads.sqlite
+   * cat etc/schema.sql > sqlite3 etc/downloads.sqlite
 
 Installation:
  - Extract source files to a directory.
@@ -30,7 +30,7 @@ Installation:
  - Adjust baseDir variable in inc/Configuration.pm
  - Create a new database with the current schema:
    * rm etc/downloads.sqlite
-   * echo etc/schema.sql > sqlite3 etc/downloads.sqlite
+   * cat etc/schema.sql > sqlite3 etc/downloads.sqlite
 
 Using hltc:
  - Go to the directory with the source files.
