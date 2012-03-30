@@ -53,7 +53,7 @@ sub startUp {
 	'--enable-rpc',
 	"--pause",
 	'-l', "$Configuration::logDir/aria2c.log",
-#	'--log-level=warn',
+	'--log-level=warn',
 	'-d', $Configuration::downloadDir,
 	'--on-download-complete', "$Configuration::baseDir/bin/complete.pl",
 	'--on-download-error', "$Configuration::baseDir/bin/error.pl",
