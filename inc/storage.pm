@@ -182,10 +182,10 @@ sub clearOldGids {
 
 	my $dbh = $this->{dbh};
 
-	my $sql = "delete from aria2 where session_id !=?;";
+	my $sql = "delete from aria2;";
 
 	my $query = $dbh->prepare($sql);
-	$query->execute($session_id) or warn $dbh->errstr;
+	$query->execute() or warn $dbh->errstr;
 	if ( $dbh->err() ) {
 		die "$DBI::errstr\n";
 	}
