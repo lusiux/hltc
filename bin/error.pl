@@ -56,3 +56,5 @@ if ( (my $nextDl = $db->getPausedOtrUrlForHost($host)) ) {
 	$db->updateState($nextDl->{id}, 2);
 	$aria2->unpauseDownload($nextDl->{gid});
 }
+
+$db->disconnect();

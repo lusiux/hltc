@@ -36,6 +36,7 @@ my $db = new storage();
 
 if ( $db->isUrlKnown($url) ) {
 	print "\nAlready downloading URL\n";
+	$db->disconnect() or warn "Disconnection failed: $DBI::errstr\n";
 	exit 1;
 }
 
@@ -61,3 +62,5 @@ if ( $otrUrl ) {
 	$db->updateState($url_id, 2);
 	$aria2->unpauseDownload($gid);
 }
+
+$db->disconnect() or warn "Disconnection failed: $DBI::errstr\n";

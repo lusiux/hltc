@@ -75,3 +75,5 @@ if ( $url ) {
 print OUT "\n";
 
 close OUT;
+
+$db->disconnect() or warn "Disconnection failed: $DBI::errstr\n";

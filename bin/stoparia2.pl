@@ -45,3 +45,5 @@ foreach ( keys %$dls ) {
 	$db->updateState($dl->{id}, 1);
 	$aria2->pauseDownload($dl->{gid});
 }
+
+$db->disconnect();
