@@ -296,7 +296,7 @@ sub getPausedNonOtrUrls {
 
 sub disconnect {
 	my ($this) = @_;
-	$this->{dbh}->disconnect();
+	return $this->{dbh}->disconnect();
 }
 
 1;
