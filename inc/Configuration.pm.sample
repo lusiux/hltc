@@ -16,8 +16,12 @@ our $screenToAttachTo = 'hltc';
 our $startTime = '02:30';
 
 ## SECTION HLTV
-# User id for otr account
+# User id for homeloadtv.com account
 our $userId=''; ## EDIT HERE
+
+## SECTION OTR
+# User id for onlinetvrecorder.com account
+our $otrUserId=''; ## EDIT HERE
 # Username for otr
 our $username = ''; ## EDIT HERE
 # Password for otr

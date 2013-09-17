@@ -29,7 +29,7 @@ use hltv;
 use hltvLinkList;
 
 print "Connecting to homeloadtv account\n";
-my $hltv = new hltv($Configuration::userId, $Configuration::username, $Configuration::password);
+my $hltv = new hltv($Configuration::hltvUserId, $Configuration::username, $Configuration::password);
 my $aria2 = new aria2();
 my $db = new storage();
 

@@ -85,7 +85,7 @@ if ( $url ) {
 	my $hltvId = $db->getHltvIdFromId($info->{id});
 
 	if ( $hltvId ) {
-		my $hltv = new hltv($Configuration::userId, $Configuration::username, $Configuration::password);
+		my $hltv = new hltv($Configuration::hltvUserId, $Configuration::username, $Configuration::password);
 		print OUT "Finishing $hltvId\n";
 
 		print OUT $hltv->finishLink($hltvId);
