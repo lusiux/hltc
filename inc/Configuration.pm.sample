@@ -26,6 +26,16 @@ our $otrUserId=''; ## EDIT HERE
 our $username = ''; ## EDIT HERE
 # Password for otr
 our $password = ''; ## EDIT HERE
+# Program id (http://www.onlinetvrecorder.com/v2/?go=api)
+our $clientId = ''; ## EDIT HERE
+# Implement secret function to calculate checksum
+# See http://www.onlinetvrecorder.com/v2/?go=api
+sub getChecksum {
+	my $code = shift;
+	die "getChecksum is not implemented. Please implement it on your own."; ## Remove this line
+	my $checksum = ''; ## EDIT HERE
+	return $checksum
+}
 
 ## DO NOT EDIT BELOW
 our ($startHour, $startMins) = split(":", $startTime);

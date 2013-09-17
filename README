@@ -1,4 +1,4 @@
-HomeLoadTv.com Client written in Perl
+HomeLoadTv.com Client written in Perl with support for OnlineTvRecorder.com
 
 Requirements:
  - aria2c
@@ -21,6 +21,7 @@ Upgrading:
  - Remove old database file and create a new database with the current schema:
    * rm etc/downloads.sqlite
    * cat etc/schema.sql > sqlite3 etc/downloads.sqlite
+ - Check your Configuration.pm and add missing variables
 
 Installation:
  - Extract source files to a directory.
@@ -31,10 +32,17 @@ Installation:
  - Create a new database with the current schema:
    * rm etc/downloads.sqlite
    * cat etc/schema.sql > sqlite3 etc/downloads.sqlite
+ - If OnlineTvRecorder.com features are used:
+   * Get an client id and the formula for checksum calculation from OnlineTvRecorder.com (http://www.onlinetvrecorder.com/v2/?go=api)
+   * Add the client id to inc/Configuration.pm and implement the checksum calculation in inc/Configuration.pm
 
 Using hltc:
- - Go to the directory with the source files.
- - just run hltc.pl (./hltc.pl)
+ - Go to the directory with the source files
+ - Just run hltc.pl (./hltc.pl)
+
+Using getOtrRecordings.pl:
+ - Go to the directory with the source files
+ - Just run getOtrRecordings.pl (./getOtrRecordings.pl)
 
 Limitations:
- - Only call it once per happy hour.
+ - Only call hltc.pl and getOtrRecordings once per happy hour.
