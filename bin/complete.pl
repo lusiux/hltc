@@ -40,7 +40,27 @@ $fileName =~ s/^.*\/([^\/]+)$/$1/;
 
 open OUT, ">> $Configuration::baseDir/logs/complete.log" or die $!;
 print OUT "$fileName\n";
-system('mv', $filePath, $Configuration::downloadCompleteDir . '/' . $fileName);
+if ( $fileName =~ /(.*)\.otrkey$/ ) {
+	my $videoName = $1;
+
+	my $retVal = system('otrdecoder', '-i', $filePath, '-e', $Configuration::username, '-p', $Configuration::password, '-o', $Configuration::downloadCompleteDir);
+
+	if ( $retVal != 0 || ! -f $Configuration::downloadCompleteDir . '/' . $videoName ) {
+		system('mv', $filePath, $Configuration::downloadCompleteDir . '/' . $fileName);
+	} else {
+		my $otrkeySize = -s $filePath;
+		my $videoSize = -s "$Configuration::downloadCompleteDir/$videoName";
+
+		if ( $videoSize < .9 * $otrkeySize || $videoSize > 1.1 * $otrkeySize ) {
+			system('mv', $filePath, $Configuration::downloadCompleteDir . '/' . $fileName);
+		} else {
+			unlink $filePath;
+		}
+	}
+
+} else {
+	system('mv', $filePath, $Configuration::downloadCompleteDir . '/' . $fileName);
+}
 
 my $db = new storage();
 my $aria2 = new aria2();
