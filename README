@@ -42,6 +42,7 @@ Using hltc:
 
 Using getOtrRecordings.pl:
  - Go to the directory with the source files
+ - Make sure aria2c is running (e.g. by starting hltc.pl now)
  - Just run getOtrRecordings.pl (./getOtrRecordings.pl)
 
 Limitations:
