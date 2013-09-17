@@ -280,6 +280,42 @@ sub getPausedDownloads {
 	return $retVal;
 }
 
+sub getAllDownloads {
+	my ($this) = @_;
+
+	my $response = $this->{rpc}->simple_request('aria2.tellActive');
+	if ( ! $response ) {
+		print STDERR $RPC::XML::ERROR . "\n";
+		return undef;
+	}
+
+	return $response;
+}
+
+sub getAllCompletedDownloads {
+	my ($this) = @_;
+
+	my $response = $this->{rpc}->simple_request('aria2.tellStopped',0,1000);
+	if ( ! $response ) {
+		print STDERR $RPC::XML::ERROR . "\n";
+		return undef;
+	}
+
+	return $response;
+}
+
+sub getAllWaitingDownloads {
+	my ($this) = @_;
+
+	my $response = $this->{rpc}->simple_request('aria2.tellWaiting',0,1000);
+	if ( ! $response ) {
+		print STDERR $RPC::XML::ERROR . "\n";
+		return undef;
+	}
+
+	return $response;
+}
+
 sub purgeDownloadResult {
 	my ($this) = @_;
 
