@@ -53,6 +53,7 @@ my $url_id = $db->addDownload($url, $host, $otrUrl, 1);
 $db->setGidForUrl($url_id, $gid, $aria2->getSessionId());
 
 if ( $otrUrl ) {
+	# FIXME: Check happy hour
 	# Check for active download with same host
 	if ( $db->getActiveUrlsForHost($host) == 0) {
 		$db->updateState($url_id, 2);
