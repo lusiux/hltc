@@ -20,7 +20,7 @@ Upgrading:
    is not running anymore. (Try: screen -list)
  - Remove old database file and create a new database with the current schema:
    * rm etc/downloads.sqlite
-   * cat etc/schema.sql > sqlite3 etc/downloads.sqlite
+   * cat etc/schema.sql | sqlite3 etc/downloads.sqlite
  - Check your Configuration.pm and add missing variables
 
 Installation:
@@ -31,7 +31,7 @@ Installation:
  - Adjust baseDir variable in inc/Configuration.pm
  - Create a new database with the current schema:
    * rm etc/downloads.sqlite
-   * cat etc/schema.sql > sqlite3 etc/downloads.sqlite
+   * cat etc/schema.sql | sqlite3 etc/downloads.sqlite
  - If OnlineTvRecorder.com features are used:
    * Get an client id and the formula for checksum calculation from OnlineTvRecorder.com (http://www.onlinetvrecorder.com/v2/?go=api)
    * Add the client id to inc/Configuration.pm and implement the checksum calculation in inc/Configuration.pm
