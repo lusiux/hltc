@@ -43,7 +43,7 @@ print OUT "$fileName\n";
 if ( $fileName =~ /(.*)\.otrkey$/ ) {
 	my $videoName = $1;
 
-	my $retVal = system('otrdecoder', '-i', $filePath, '-e', $Configuration::username, '-p', $Configuration::password, '-o', $Configuration::downloadCompleteDir);
+	my $retVal = system($Configuration::decoder, '-i', $filePath, '-e', $Configuration::username, '-p', $Configuration::password, '-o', $Configuration::downloadCompleteDir);
 
 	if ( $retVal != 0 || ! -f $Configuration::downloadCompleteDir . '/' . $videoName ) {
 		system('mv', $filePath, $Configuration::downloadCompleteDir . '/' . $fileName);

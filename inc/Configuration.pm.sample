@@ -18,6 +18,8 @@ our $startTime = '02:30';
 ## SECTION HLTV
 # User id for homeloadtv.com account
 our $userId=''; ## EDIT HERE
+# Path to the otrdecorder binary
+our $decoder = ''; ## EDIT HERE
 
 ## SECTION OTR
 # User id for onlinetvrecorder.com account
