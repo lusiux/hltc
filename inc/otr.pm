@@ -21,6 +21,7 @@ use LWP::UserAgent;
 use HTTP::Cookies;
 use Text::Iconv;
 use URI::Escape;
+use Digest::MD5 qw(md5_hex);
 
 use Configuration;
 
@@ -103,7 +104,7 @@ sub realLogin {
 
 	$self->{ua}->cookie_jar({});
 
-	my $loginUrl = sprintf('%s/login.php?email=%s&pass=%s&did=%s&checksum=%s', $baseUrl, $self->{email}, $self->{password}, $Configuration::clientId, $self->{checksum});
+	my $loginUrl = sprintf('%s/login.php?email=%s&pass=%s&did=%s&checksum=%s', $baseUrl, $self->{email}, md5_hex($self->{password}), $Configuration::clientId, $self->{checksum});
 
 	my $response = $self->waitGet($loginUrl);
 
