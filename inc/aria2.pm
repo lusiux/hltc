@@ -129,6 +129,19 @@ sub startDownload {
 	}
 }
 
+sub stopDownload {
+	my ($this, $gid) = @_;
+
+	my $response = $this->{rpc}->simple_request('aria2.remove', RPC::XML::string->new($gid));
+
+	if ( $response eq $gid ) {
+		return $response;
+	} else {
+		print STDERR $RPC::XML::ERROR . "\n";
+		return undef;
+	}
+}
+
 sub pauseAllDownloads {
 	my ($this) = @_;
 
