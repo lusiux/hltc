@@ -46,6 +46,8 @@ my $host = $1;
 my $otrUrl = 0;
 if ( $url =~ /http:\/\/81\.95\.11\./ ) {
 	$otrUrl = 1;
+} elsif ( $url =~ /http:\/\/93\.115\.84\.162/ ) {
+	$otrUrl = 1;
 }
 
 my $gid = $aria2->startDownload($url);
